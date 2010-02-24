@@ -102,7 +102,7 @@ var
   X, Y: Integer;
 begin
   if P1.Height<>P2.Height then
-    raise Exception.Create('Mismatching hegiht in VConcatPNG');
+    raise Exception.Create('Mismatching height in VConcatPNG');
   Result := TPNGObject.CreateBlank(P1.Header.ColorType, P1.Header.BitDepth, P1.Width+P2.Width, P1.Height);
   for Y := 0 to P1.Height-1 do
     for X := 0 to P1.Width-1 do
