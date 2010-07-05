@@ -17,9 +17,15 @@ function  Crop(B: TBitmap; X1, Y1, X2, Y2: Integer): TBitmap;
 function  LoadPNG(FN: string): TPNGObject;
 procedure SavePNG(P: TPNGObject; FN: string);
 function  CropPNG(P: TPNGObject; X1, Y1, X2, Y2: Integer): TPNGObject; // slow
-function  MakeAlpha(P0, P1: TPNGObject): TPNGObject;
 function  ToBitmap(P: TPNGObject): TBitmap;
 function  VConcatPNG(P1, P2: TPNGObject): TPNGObject;
+
+// XOR
+function Difference(P0, P1: TPNGObject): TPNGObject;
+// Create alpha PNG of an object taken with a black (P0) and white (P1) backgrounds.
+function  MakeAlpha(P0, P1: TPNGObject): TPNGObject;
+// Create alpha PNG of an object using a picture without (P0) and with (P1) the object, assuming the object has only grayscale colors.
+//function  MakeAlphaGrayscale(P0, P1: TPNGObject): TPNGObject;
 
 implementation
 
@@ -117,6 +123,24 @@ begin
       Result.Pixels[X+P1.Width, Y] := P2.Pixels[X, Y];
 end;
 
+function ToBitmap(P: TPNGObject): TBitmap;
+begin
+  Result := TBitmap.Create;
+  Result.Assign(P);
+  Result.PixelFormat := pf32bit;
+end;
+
+// ********************************************************
+
+function Difference(P0, P1: TPNGObject): TPNGObject;
+var
+  X, Y: Integer;
+begin
+  Result := TPNGObject.CreateBlank(P0.Header.ColorType, P0.Header.BitDepth, P0.Width, P0.Height);
+  for Y:=0 to P0.Height-1 do
+    for X:=0 to P0.Width-1 do
+      Result.Pixels[X, Y] := P0.Pixels[X,Y] xor P1.Pixels[X,Y];
+end;
 
 procedure CalcAlpha(X, Y: Byte; var C, A: Byte); inline;
 begin
@@ -148,10 +172,36 @@ begin
     end;
 end;
 
-function ToBitmap(P: TPNGObject): TBitmap;
+{function MakeAlphaGrayscale(P0, P1: TPNGObject): TPNGObject;
+var
+  X, Y: Integer;
+  C0, C1: TColor;
+  R0, G0, B0, R1, G1, B1, RD, GD, BD: Integer;
 begin
-  Result := TBitmap.Create;
-  Result.Assign(P);
-end;
+  Result := TPNGObject.CreateBlank(COLOR_RGBALPHA, 8, P0.Width, P0.Height);
+  for Y:=0 to P0.Height-1 do
+    for X:=0 to P0.Width-1 do
+    begin
+      C0 := P0.Pixels[X,Y];
+      C1 := P1.Pixels[X,Y];
+      
+      R0 := GetRValue(C0);
+      G0 := GetGValue(C0);
+      B0 := GetBValue(C0);
+      
+      R1 := GetRValue(C1);
+      G1 := GetGValue(C1);
+      B1 := GetBValue(C1);
+
+      // P1 = (ResultColor * ResultAlpha) + (P0 * (1-ResultAlpha))
+      
+      CalcAlpha(GetRValue(C0), GetRValue(C1), R, A1);
+      CalcAlpha(GetGValue(C0), GetGValue(C1), G, A2);
+      CalcAlpha(GetBValue(C0), GetBValue(C1), B, A3);
+      //PIntegerArray(Result.     Scanline[Y])[X] := RGB(R, G, B);
+      Result.Pixels[X, Y] := RGB(R, G, B);
+      PByteArray   (Result.AlphaScanline[Y])[X] := (A1 + A2 + A3) div 3;
+    end;
+end;}
 
 end.
