@@ -27,6 +27,9 @@ function  MakeAlpha(P0, P1: TPNGObject): TPNGObject;
 // Create alpha PNG of an object using a picture without (P0) and with (P1) the object, assuming the object has only grayscale colors.
 //function  MakeAlphaGrayscale(P0, P1: TPNGObject): TPNGObject;
 
+// Averages NxN blocks
+function Downscale(Bitmap: TBitmap; N: Integer): TBitmap;
+
 implementation
 
 function CreateBitmap(Width, Height: Integer): TBitmap;
@@ -203,5 +206,30 @@ begin
       PByteArray   (Result.AlphaScanline[Y])[X] := (A1 + A2 + A3) div 3;
     end;
 end;}
+
+function Downscale(Bitmap: TBitmap; N: Integer): TBitmap;
+var
+  X, Y, I, J: Integer;
+  R, G, B: Integer;
+  C: TColor;
+begin
+  Result := TBitmap.Create;
+  Result.Width := Bitmap.Width div N;
+  Result.Height := Bitmap.Height div N;
+  for Y:=0 to Bitmap.Height div N - 1 do
+    for X:=0 to Bitmap.Width div N - 1 do
+    begin
+      R := 0; G := 0; B := 0;
+      for J:=0 to N-1 do
+        for I:=0 to N-1 do
+        begin
+          C := Bitmap.Canvas.Pixels[X*N+I, Y*N+J];
+          Inc(R, GetRValue(C));
+          Inc(G, GetGValue(C));
+          Inc(B, GetBValue(C));
+        end;
+      Result.Canvas.Pixels[X, Y] := RGB(R div (N*N), G div (N*N), B div (N*N));
+    end;
+end;
 
 end.
