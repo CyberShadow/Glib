@@ -29,6 +29,8 @@ function  MakeAlpha(P0, P1: TPNGObject): TPNGObject;
 
 // Averages NxN blocks
 function Downscale(Bitmap: TBitmap; N: Integer): TBitmap;
+// Render text to a new bitmap
+function RenderText(Font: TFont; BackgroundColor: TColor; Text: String): TBitmap;
 
 implementation
 
@@ -230,6 +232,16 @@ begin
         end;
       Result.Canvas.Pixels[X, Y] := RGB(R div (N*N), G div (N*N), B div (N*N));
     end;
+end;
+
+function RenderText(Font: TFont; BackgroundColor: TColor; Text: String): TBitmap;
+begin
+  Result := TBitmap.Create;
+  Result.Canvas.Font := Font;
+  Result.Canvas.Brush.Color := BackgroundColor;
+  Result.Width := Result.Canvas.TextWidth(Text);
+  Result.Height := Result.Canvas.TextHeight(Text);
+  Result.Canvas.TextOut(0, 0, Text);
 end;
 
 end.
