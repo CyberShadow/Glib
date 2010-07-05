@@ -33,9 +33,14 @@ end;
 
 function LoadBitmap(FN: string): TBitmap;
 begin
-  Result := TBitmap.Create;
-  Result.LoadFromFile(FN);
-  Result.PixelFormat := pf32bit;
+  if LowerCase(ExtractFileExt(FN))='.png' then
+    Result := ToBitmap(LoadPNG(FN))
+  else
+  begin
+    Result := TBitmap.Create;
+    Result.LoadFromFile(FN);
+    Result.PixelFormat := pf32bit;
+  end;
 end;
 
 procedure SaveAsPNG(B: TBitmap; FN: string);
